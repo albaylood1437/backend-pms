@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model department {
+  departmentId   Int       @id @default(autoincrement())
+  departmentName String
+  createdAt      DateTime? @default(now())
+  updatedAt      DateTime? @default(now())
+  vehicle        vehicle[]
+}
+
+model garage {
+  garageId              Int                     @id @default(autoincrement())
+  garageName            String
+  createdAt             DateTime?               @default(now())
+  updatedAt             DateTime?               @default(now())
+  DeletedItemPart       DeletedItemPart[]
+  DeletedServiceExpense DeletedServiceExpense[]
+  serviceExpense        serviceExpense[]
+}
+
+model itemPart {
+  itemPart       String          @id
+  partName       String
+  partQuantity   Int
+  partPrice      Int
+  createdAt      DateTime?       @default(now())
+  updatedAt      DateTime?       @default(now())
+  id             Int?
+  supplierId     Int?
+  serviceExpense serviceExpense? @relation(fields: [id], references: [id])
+  supplier       supplier?       @relation(fields: [supplierId], references: [supplierId])
+
+  @@index([id], name: "serviceExpenseIndex")
+  @@index([supplierId], name: "supplierIdex")
+}
+
+model part {
+  partId    Int       @id @default(autoincrement())
+  partName  String
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
+}
+
+model serviceExpense {
+  id                 Int        @id @default(autoincrement())
+  invoiceNumber      String     @unique
+  serviceDescription String?
+  serviceDate        DateTime?
+  serviceCost        Int?
+  totalCost          Int?
+  purchaseID         Int?
+  createdAt          DateTime?  @default(now())
+  updatedAt          DateTime?  @default(now())
+  vehicleId          Int?
+  garageId           Int?
+  garage             garage?    @relation(fields: [garageId], references: [garageId])
+  vehicle            vehicle?   @relation(fields: [vehicleId], references: [vehicleId])
+  itemPart           itemPart[]
+
+  @@index([garageId], name: "garageIdex")
+  @@index([vehicleId], name: "vehicleIdex")
+}
+
+model supplier {
+  supplierId      Int               @id @default(autoincrement())
+  supplierName    String
+  createdAt       DateTime?         @default(now())
+  updatedAt       DateTime?         @default(now())
+  DeletedItemPart DeletedItemPart[]
+  itemPart        itemPart[]
+}
+
+model users {
+  userId   Int     @id @default(autoincrement())
+  username String?
+  email    String  @unique
+  isAdmin  String
+  password String
+}
+
+model vehicle {
+  vehicleId             Int                     @id @default(autoincrement())
+  plateNumber           String
+  model                 String
+  modelYear             Int
+  chasisNubmer          Int
+  purchaseDate          DateTime
+  purchaseMileAge       Int
+  disposalDate          DateTime?
+  vehicleStatus         String?                 @default("No")
+  departmentId          Int?
+  location              String?
+  reason                String?
+  department            department?             @relation(fields: [departmentId], references: [departmentId])
+  DeletedServiceExpense DeletedServiceExpense[]
+  driving               driving[]
+  serviceExpense        serviceExpense[]
+
+  @@index([departmentId], name: "departmentIdex")
+}
+
+model drivers {
+  driverId     Int       @id @default(autoincrement())
+  driverName   String
+  phone        String
+  licensNo     Int
+  description  String?
+  driverStatus String?   @default("No")
+  driving      driving[]
+}
+
+model DeletedItemPart {
+  itemPart     String    @id
+  partName     String
+  partQuantity Int
+  partPrice    Int
+  createdAt    DateTime? @default(now())
+  updatedAt    DateTime? @default(now())
+  id           Int
+  supplierId   Int?
+  garageId     Int?
+  garage       garage?   @relation(fields: [garageId], references: [garageId])
+  supplier     supplier? @relation(fields: [supplierId], references: [supplierId])
+
+  @@index([garageId], name: "garageIdex")
+  @@index([supplierId], name: "supplierIdex")
+}
+
+model driving {
+  drivingId          Int      @id @default(autoincrement())
+  drivingDate        DateTime
+  drivingDescription String?
+  drivingStatus      String?  @default("Active")
+  vehicleId          Int?
+  driverId           Int?
+  reason             String?
+  drivers            drivers? @relation(fields: [driverId], references: [driverId])
+  vehicle            vehicle? @relation(fields: [vehicleId], references: [vehicleId])
+
+  @@index([driverId], name: "driverIndex")
+  @@index([vehicleId], name: "vehicleIdex")
+}
+
+model DeletedServiceExpense {
+  id                 Int       @id @default(autoincrement())
+  invoiceNumber      String    @unique
+  serviceDescription String?
+  serviceDate        DateTime?
+  serviceCost        Int?
+  totalCost          Int?
+  purchaseID         Int?
+  createdAt          DateTime? @default(now())
+  updatedAt          DateTime? @default(now())
+  vehicleId          Int?
+  garageId           Int?
+  garage             garage?   @relation(fields: [garageId], references: [garageId])
+  vehicle            vehicle?  @relation(fields: [vehicleId], references: [vehicleId])
+
+  @@index([garageId], name: "garageIdex")
+  @@index([vehicleId], name: "vehicleIdex")
+}
